@@ -1,19 +1,4 @@
-<!DOCTYPE>
-<html>
-	<head>
-<?php
-	session_start();
-	require_once '../php/all.php';!
-	$is_admin = is_admin();
-	$language_list = get_all_languages();
-?>
-		<link rel="stylesheet" type="text/css" href="../style.css">
-		<title><?php
-	echo ($is_admin) ? "Administrator" : "Access Denied";
-?></title>
-	</head>
-	<body>
-		<div id="background">
+
 			<header>
 				<a href="<?php echo ROOT?>">
 					<img src="../logo.png" alt="Some type of logo" class="logo" border="0">
@@ -105,19 +90,3 @@ if(isset($_SESSION['language_server_user'])) {
 				</nav>
 			</header>
 			<section id="body_content">
-				<div></div>
-<?php
-if($status) {
-?>
-				<!--Content Goes Here-->
-<?php
-} else {
-?>
-				<p class="bad">Access Denied</p>
-<?php
-}
-?>
-			</section>
-		</div>
-	</body>
-</html>

@@ -3,24 +3,7 @@
 	<head>
 <?php
 	session_start();
-	require_once '../php/all.php';!
-	$status = status();
-	if($status) {
-		if(isset($_POST['change_word'])) {
-			if($_POST['change_cat'] == 'add' && isset($_POST['category'])) {
-				add_category($_POST['category'], $_POST['description']);
-			}
-			if($_POST['change_cat'] === 'delete' && isset($_GET['id'])) {
-				delete_category($_GET['id']);
-			}
-			if($_POST['change_cat'] === 'edit' && isset($_GET['id']) && isset($_POST['category'])) {
-				edit_category($_GET['id'], $_POST['category'], $_POST['description']);
-			}
-		}
-	}
-	$word_list = get_all_words();
-	$language_list = get_all_languages();
-	$category_list = get_all_categories();
+	require_once '../php/all.php';
 	function match_word($word) {
 		if(!isset($_POST['filter_word']) || !is_string($_POST['filter_word']) || trim($_POST['filter_word']) == '') {
 			return true;
@@ -52,6 +35,96 @@
 		}
 		return false;
 	}
+	$status = status();
+	if($status) {
+		if(isset($_POST['change_word'])) {
+			if($_POST['change_word'] == 'add' && isset($_POST['word'])) {
+				var_dump($_FILES);
+				$pri_ext = (!empty($_FILES['primary_sound']['name'])) ? end(explode(".", $_FILES["primary_sound"]["name"])) : '';
+				$sec_ext = (!empty($_FILES['secondary_sound']['name'])) ? end(explode(".", $_FILES["secondary_sound"]["name"])) : '';
+				$pic_ext = (!empty($_FILES['picture']['name'])) ? end(explode(".", $_FILES["picture"]["name"])) : '';
+				$id = add_word($_POST['word'], $pri_ext, $sec_ext, $pic_ext, $_POST['language']);
+				if($id !== false) {
+					if($pri_ext !== '') {
+						move_uploaded_file($_FILES["primary_sound"]["tmp_name"], "../sounds/" . $id . '.' . $pri_ext);
+					}
+					if($pri_ext !== $sec_ext && $sec_ext !== '') {
+						move_uploaded_file($_FILES["secondary_sound"]["tmp_name"], "../sounds/" . $id . '.' . $sec_ext);
+					}
+					if($pic_ext !== '') {
+						move_uploaded_file($_FILES["picture"]["tmp_name"], "../images/" . $id . '.' . $pic_ext);
+					}
+				}
+			}
+			if($_POST['change_word'] === 'delete' && isset($_GET['id'])) {
+				$delete_word = get_by_word_id($_GET['id']);
+				if($delete_word->is_init() && delete_word($delete_word->id())) {
+					$location = "../sounds/" . $delete_word->id() . '.' . $delete_word->primary_sound();
+					if($delete_word->primary_sound() !== '' && file_exists($location)) {
+						unlink($location);
+					}
+					$location = "../sounds/" . $delete_word->id() . '.' . $delete_word->secondary_sound();
+					if($delete_word->secondary_sound() !== '' && file_exists($location)) {
+						unlink($location);
+					}
+					$location = "../images/" . $delete_word->id() . '.' . $delete_word->picture();
+					if($delete_word->picture() !== '' && file_exists($location)) {
+						unlink($location);
+					}
+				}
+			}
+			if($_POST['change_word'] === 'edit' && isset($_GET['id']) && isset($_POST['word'])) {
+				$edit_word = get_by_word_id($_GET['id']);
+				echo $edit_word->word();
+				$pri_ext = (!empty($_FILES['primary_sound']['name'])) ? end(explode(".", $_FILES["primary_sound"]["name"])) : '';
+				$sec_ext = (!empty($_FILES['secondary_sound']['name'])) ? end(explode(".", $_FILES["secondary_sound"]["name"])) : '';
+				$pic_ext = (!empty($_FILES['picture']['name'])) ? end(explode(".", $_FILES["picture"]["name"])) : '';
+				if(
+					edit_word($_GET['id'], $_POST['word'],
+					($pri_ext !== '') ? $pri_ext : $edit_word->primary_sound(),
+					($sec_ext !== '') ? $sec_ext : $edit_word->secondary_sound(),
+					($pic_ext !== '') ? $pic_ext : $edit_word->picture(),
+					$_POST['language'])
+				) {
+				
+					$location = "../sounds/" . $edit_word->id() . '.' . $edit_word->primary_sound();
+					if($pri_ext !== '') {
+						if($edit_word->primary_sound() !== '' && file_exists($location)) {
+							unlink($location);
+						}
+						move_uploaded_file($_FILES["primary_sound"]["tmp_name"], "../sounds/" . $edit_word->id() . '.' . $pri_ext);
+					}
+					
+					$location = "../sounds/" . $edit_word->id() . '.' . $edit_word->secondary_sound();
+					if($pri_ext !== $sec_ext && $sec_ext !== '') {
+						if($edit_word->secondary_sound() !== '' && file_exists($location)) {
+							unlink($location);
+						}
+						move_uploaded_file($_FILES["secondary_sound"]["tmp_name"], "../sounds/" . $edit_word->id() . '.' . $sec_ext);
+					}
+					
+					$location = "../images/" . $edit_word->id() . '.' . $edit_word->picture();
+					if($pic_ext !== '') {
+						if($edit_word->picture() !== '' && file_exists($location)) {
+							unlink($location);
+						}
+						move_uploaded_file($_FILES["picture"]["tmp_name"], "../images/" . $edit_word->id() . '.' . $pic_ext);
+					}
+				}
+			}
+		}
+		if(isset($_POST['change_is'])) {
+			if($_POST['change_is'] === 'add') {
+				add_word_to_category($_POST['word_id'], $_POST['category_id']);
+			}
+			if($_POST['change_is'] === 'delete') {
+				delete_word_from_category($_POST['word_id'], $_POST['category_id']);
+			}
+		}
+	}
+	$word_list = get_all_words();
+	$language_list = get_all_languages();
+	$category_list = get_all_categories();
 ?>
 		<link rel="stylesheet" type="text/css" href="../style.css">
 		<title><?php
@@ -66,25 +139,7 @@
 					<img src="../logo.png" alt="Some type of logo" class="logo" border="0">
 				</a>
 				<nav>
-					<section id="left_menu" class="menu">
-						<div class="menu_title">
-							<a href="<?php echo ROOT?>">Choose Language</a>
-						</div>
-						<section class="sub_menu">
-<?php
-foreach($language_list as $language) {
-?>
-							<p>
-								<a href="?language_id=<?php echo $language->id(); ?>">
-									<?php echo $language->language(). "\n"; ?>
-								</a>
-							</p>
-<?php
-}
-?>
-						</section>
-					</section>
-					<section id="right_menu" class="menu">
+				<section id="right_menu" class="menu">
 <?php
 if(isset($_SESSION['language_server_user'])) {
 ?>
@@ -102,15 +157,20 @@ if(isset($_SESSION['language_server_user'])) {
 								<a href="./categories.php">Category Options</a>
 							</p>
 							<p>
-								<a href="./langugaes.php">Language Options</a>
+								<a href="./languages.php">Language Options</a>
 							</p>
 							<p>
 								<a href="./words.php">Word Options</a>
 							</p>
+							
+<?php
+		if(status() === 2) {
+?>
 							<p>
 								<a href="./users.php">User Options</a>
 							</p>
 <?php
+		}
 	}
 ?>
 							<p>
@@ -131,7 +191,7 @@ if(isset($_SESSION['language_server_user'])) {
 <?php
 	}
 ?>
-							<form action="login.php?redirect=<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
+							<form action="../login.php?redirect=<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
 								<table>
 									<tr>
 										<td>
@@ -192,7 +252,7 @@ foreach($language_list as $language) {
 ?>
 									<input type="checkbox" value="<?php
 	echo $language->id();
-?>" name="filter_language[]" id="<?php
+?>" name="filter_language[]" id="<?
 	echo $language->language();
 ?>">
 									<label for="<?php echo $language->language(); ?>"><?php echo $language->language(); ?></label>
@@ -213,7 +273,7 @@ foreach($category_list as $category) {
 ?>
 									<input type="checkbox" value="<?php
 	echo $category->id();
-?>" name="filter_category[]" id="<?php
+?>" name="filter_category[]" id="<?
 	echo $category->category();
 ?>">
 									<label for="<?php echo $category->category(); ?>"><?php echo $category->category(); ?></label>
@@ -237,7 +297,7 @@ if($status) {
 ?>
 				<section id="column1">
 					<table>
-						<form action="words.php" method="post">
+						<form action="words.php" method="post" enctype="multipart/form-data">
 							<tr class="lowlight">
 								<th>
 								</th>
@@ -286,7 +346,7 @@ if($status) {
 	foreach($language_list as $language) {
 ?>
 										<option value="<?php echo $language->id();?>">
-											<?php echo $language->language(); ?>
+											<?php echo $language->language() . "\n"; ?>
 										</option>
 <?php
 	}
@@ -313,9 +373,7 @@ if($status) {
 		}
 		
 ?>
-						<form action="words.php?id=<?php echo $item->id(); ?>" method="post" class="cat0 lang0 <?
-		echo 'lan' . $item->language_id();
-?>">
+						<form action="words.php?id=<?php echo $item->id(); ?>" method="post" enctype="multipart/form-data">
 							<tr class="<? echo ($odd) ? 'highlight' : 'lowlight'; ?>">
 								<th>
 									ID
@@ -326,7 +384,7 @@ if($status) {
 							</tr>
 							<tr class="<? echo ($odd) ? 'highlight' : 'lowlight'; ?>">
 								<td>
-									<? echo $item->id(); ?>
+									<? echo $item->id() . "\n"; ?>
 								</td>
 								<td>
 									<input type="text" name="word" value="<? echo $item->word(); ?>">
@@ -379,7 +437,7 @@ if($status) {
 			echo ' selected="selected"';
 		}
 ?>>
-											<?php echo $language->language(); ?>
+											<?php echo $language->language() . "\n"; ?>
 										</option>
 <?php
 		}
@@ -408,22 +466,22 @@ if($status) {
 				</section>
 				<section id="column2">
 					<table>
+						<tr>
+							<th>
+								Word
+							</th>
+							<th>&nbsp;</th>
+							<th>
+								Category
+							</th>
+							<th>
+								Action
+							</th>
+						</tr>
 						<form method="post" action="words.php">
-							<tr>
-								<th>
-									Word
-								</th>
-								<th>&nbsp;</th>
-								<th>
-									Category
-								</th>
-								<th>
-									Action
-								</th>
-							</tr>
 							<tr class="lowlight">
 								<td>
-									<select name="child">
+									<select name="word_id">
 <?php
 	foreach($word_list as $item) {
 ?>
@@ -435,7 +493,7 @@ if($status) {
 								</td>
 								<td>is</td>
 								<td>
-									<select name="parent">
+									<select name="category_id">
 <?php
 	foreach($category_list as $category) {
 ?>
@@ -449,6 +507,7 @@ if($status) {
 									<input type="submit" value="add" name="change_is">
 								</td>
 							</tr>
+						</form>
 <?php
 	$odd = true;
 	foreach($word_list as $item) {
@@ -458,24 +517,27 @@ if($status) {
 		}
 		foreach($cats as $cat) {
 ?>
-							<tr class="<? echo ($odd) ? 'highlight' : 'lowlight'; ?>">
-								<td>
-									<?php echo $item->word(); ?>
-								</td>
-								<td>&nbsp;is&nbsp;</td>
-								<td>
-									<?php echo $cat->category(); ?>
-								</td>
-								<td>
+						<tr class="<? echo ($odd) ? 'highlight' : 'lowlight'; ?>">
+							<td>
+								<?php echo $item->word() . "\n"; ?>
+							</td>
+							<td>is</td>
+							<td>
+								<?php echo $cat->category() . "\n"; ?>
+							</td>
+							<td>
+								<form method="post" action="words.php">
+									<input type="hidden" value="<?php echo $item->id();?>" name="word_id">
+									<input type="hidden" value="<?php echo $cat->id();?>" name="category_id">
 									<input type="submit" value="delete" name="change_is">
-								</td>
-							</tr>
+								</form>
+							</td>
+						</tr>
 <?php
+			$odd=!$odd;
 		}
-		$odd=!$odd;
 	}
 ?>
-						</form>
 					</table>
 				</section>
 <?php

@@ -16,8 +16,7 @@
 ?></title>
 	</head>
 	<body>
-		<div id="background">
-			<header>
+		<div id="background">			<header>
 				<a href="<?php echo ROOT?>">
 					<img src="logo.png" alt="Some type of logo" class="logo" border="0">
 				</a>
@@ -58,15 +57,19 @@ if(isset($_SESSION['language_server_user'])) {
 								<a href="admin/categories.php">Category Options</a>
 							</p>
 							<p>
-								<a href="admin/langugaes.php">Language Options</a>
+								<a href="admin/languages.php">Language Options</a>
 							</p>
 							<p>
 								<a href="admin/words.php">Word Options</a>
 							</p>
+<?php
+		if(status() === 2) {
+?>
 							<p>
 								<a href="admin/users.php">User Options</a>
 							</p>
 <?php
+		}
 	}
 ?>
 							<p>

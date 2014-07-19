@@ -58,15 +58,19 @@ if(isset($_SESSION['language_server_user'])) {
 								<a href="admin/categories.php">Category Options</a>
 							</p>
 							<p>
-								<a href="admin/langugaes.php">Language Options</a>
+								<a href="admin/languages.php">Language Options</a>
 							</p>
 							<p>
 								<a href="admin/words.php">Word Options</a>
 							</p>
+<?php
+		if(status() === 2) {
+?>
 							<p>
 								<a href="admin/users.php">User Options</a>
 							</p>
 <?php
+		}
 	}
 ?>
 							<p>
@@ -144,28 +148,17 @@ if(!$current_language->is_init()) {?>
 ?>
 				<br />
 				What would you like to do?
-				<table style="margin-left:auto; margin-right:auto;">
+				<br>
+				<table class="choose">
 					<tr>
 						<td>
 							<a href="study_words.php?language_id=<?php echo $current_language->id(); ?>">
-								<img src="study_words.jpg" width="300" height="200" border="0">
+								Study Words
 							</a>
 						</td>
 						<td>
 							<a href="practice_words.php?language_id=<?php echo $current_language->id(); ?>">
-								<img src="practice_words.jpg" width="300" height="200" border="0">
-							</a>
-						</td>
-					</tr>
-					<tr>
-						<td>
-							<a href="quiz.php?language_id=<?php echo $current_language->id(); ?>">
-								<img src="quiz.jpg" width="300" height="200" border="0">
-							</a>
-						</td>
-						<td>
-							<a href="tests.php?language_id=<?php echo $current_language->id(); ?>">
-								<img src="tests.jpg" width="300" height="200" border="0">
+								Practice Words
 							</a>
 						</td>
 					</tr>

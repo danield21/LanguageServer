@@ -21,8 +21,7 @@
 ?></title>
 	</head>
 	<body>
-		<div id="background">
-			<header>
+		<div id="background">			<header>
 				<a href="<?php echo ROOT?>">
 					<img src="logo.png" alt="Some type of logo" class="logo" border="0">
 				</a>
@@ -63,15 +62,19 @@ if(isset($_SESSION['language_server_user'])) {
 								<a href="admin/categories.php">Category Options</a>
 							</p>
 							<p>
-								<a href="admin/langugaes.php">Language Options</a>
+								<a href="admin/languages.php">Language Options</a>
 							</p>
 							<p>
 								<a href="admin/words.php">Word Options</a>
 							</p>
+<?php
+		if(status() === 2) {
+?>
 							<p>
 								<a href="admin/users.php">User Options</a>
 							</p>
 <?php
+		}
 	}
 ?>
 							<p>
@@ -142,10 +145,14 @@ if(!$current_language->is_init()) {?>
 } else {
 	if(!$current_category->is_init()) {
 ?>
-				<table class="choose_cat">
+				<table class="choose">
 <?
 		$cats = get_all_categories();
 		foreach($cats as $cat) {
+			$word = get_words($cat, $current_language);
+			if(count($word) === 0) {
+				continue;
+			}
 ?>
 					<tr>
 						<th>
@@ -157,11 +164,10 @@ if(!$current_language->is_init()) {?>
 					<tr>
 						<td>
 <?php
-			$word = get_words($cat, new Language);
 			shuffle($word);
 			for($i = 0; (isset($word[$i])) && ($i < 5); ++$i) {
 ?>
-				<img src="<?php echo 'images/' . $word[$i]->id() . '.' . $word[$i]->picture();?>" alt="">
+							<img src="<?php echo 'images/' . $word[$i]->id() . '.' . $word[$i]->picture();?>" alt="">
 <?php
 			}
 ?>

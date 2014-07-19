@@ -19,25 +19,7 @@
 					<img src="../logo.png" alt="Some type of logo" class="logo" border="0">
 				</a>
 				<nav>
-					<section id="left_menu" class="menu">
-						<div class="menu_title">
-							<a href="<?php echo ROOT?>">Choose Language</a>
-						</div>
-						<section class="sub_menu">
-<?php
-foreach($language_list as $language) {
-?>
-							<p>
-								<a href="?language_id=<?php echo $language->id(); ?>">
-									<?php echo $language->language(). "\n"; ?>
-								</a>
-							</p>
-<?php
-}
-?>
-						</section>
-					</section>
-					<section id="right_menu" class="menu">
+				<section id="right_menu" class="menu">
 <?php
 if(isset($_SESSION['language_server_user'])) {
 ?>
@@ -55,15 +37,20 @@ if(isset($_SESSION['language_server_user'])) {
 								<a href="./categories.php">Category Options</a>
 							</p>
 							<p>
-								<a href="./langugaes.php">Language Options</a>
+								<a href="./languages.php">Language Options</a>
 							</p>
 							<p>
 								<a href="./words.php">Word Options</a>
 							</p>
+							
+<?php
+		if(status() === 2) {
+?>
 							<p>
 								<a href="./users.php">User Options</a>
 							</p>
 <?php
+		}
 	}
 ?>
 							<p>
@@ -84,7 +71,7 @@ if(isset($_SESSION['language_server_user'])) {
 <?php
 	}
 ?>
-							<form action="login.php?redirect=<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
+							<form action="../login.php?redirect=<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
 								<table>
 									<tr>
 										<td>
@@ -122,18 +109,37 @@ if(isset($_SESSION['language_server_user'])) {
 <?php
 if($status) {
 ?>
-				<p>
-					<a href="categories.php">Category Options</a>
-				</p>
-				<p>
-					<a href="langugaes.php">Language Options</a>
-				</p>
-				<p>
-					<a href="words.php">Word Options</a>
-				</p>
-				<p>
-					<a href="users.php">User Options</a>
-				</p>
+				<table class="choose">
+					<tr>
+						<th style="padding:5pt;">
+							<a href="categories.php">Category Options</a>
+						</th>
+					</tr>
+					<tr>
+						<td>&nbsp;</td>
+					</tr>
+					<tr>
+						<th style="padding:5pt;">
+							<a href="languages.php">Language Options</a>
+						</th>
+					</tr>
+					<tr>
+						<td>&nbsp;</td>
+					</tr>
+					<tr>
+						<th style="padding:5pt;">
+							<a href="words.php">Word Options</a>
+						</th>
+					</tr>
+					<tr>
+						<td>&nbsp;</td>
+					</tr>
+					<tr>
+						<th style="padding:5pt;">
+							<a href="users.php">User Options</a>
+						</th>
+					</tr>
+				</table>
 <?php
 } else {
 ?>

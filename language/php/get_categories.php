@@ -6,6 +6,7 @@ function get_all_categories() {
 	$connection = new mysqli(IP, USER, PASSWORD, DATABASE);
 	if ($connection->connect_errno)
 	{
+		log_info("Failed to connect to MySQL: (" . $mysqli->connect_errno . ") " . $mysqli->connect_error);
 		return array();
 	}
 		
@@ -32,23 +33,24 @@ function get_by_category_id($id) {
 	$connection = new mysqli(IP, USER, PASSWORD, DATABASE);
 	if ($connection->connect_errno)
 	{
+		log_info("Failed to connect to MySQL: (" . $mysqli->connect_errno . ") " . $mysqli->connect_error);
 		return $category;
 	}
 	$command = 'SELECT * FROM category WHERE category_id = ? LIMIT 0, 1;';
 	
 	if(!($stmt = $connection->prepare($command)))
 	{
-		echo "Prepare failed: (" . $connection->errno . ") " . $connection->error;
+		log_info("Prepare failed: (" . $connection->errno . ") " . $connection->error);
 		return $category;
 	}
 	if(!$stmt->bind_param('s', $id))
 	{
-		echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+		log_info("Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error);
 		return $category;
 	}
 	elseif (!$stmt->execute())
 	{
-		echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+		log_info("Execute failed: (" . $stmt->errno . ") " . $stmt->error);
 		return $category;
 	}
 	$results = $stmt->get_result();
@@ -67,23 +69,24 @@ function get_category_by_word(Word $word) {
 	$connection = new mysqli(IP, USER, PASSWORD, DATABASE);
 	if ($connection->connect_errno)
 	{
+		log_info("Failed to connect to MySQL: (" . $mysqli->connect_errno . ") " . $mysqli->connect_error);
 		return $categories;
 	}
 	$command = 'SELECT * FROM is_in WHERE word_id = ?;';
 	
 	if(!($stmt = $connection->prepare($command)))
 	{
-		echo "Prepare failed: (" . $connection->errno . ") " . $connection->error;
+		log_info("Prepare failed: (" . $connection->errno . ") " . $connection->error);
 		return $categories;
 	}
 	if(!$stmt->bind_param('i', $word->id()))
 	{
-		echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+		log_info("Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error);
 		return $categories;
 	}
 	elseif (!$stmt->execute())
 	{
-		echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+		log_info("Execute failed: (" . $stmt->errno . ") " . $stmt->error);
 		return $categories;
 	}
 	
@@ -108,6 +111,7 @@ function get_all_subcategories(Category $current) {
 	$connection = new mysqli(IP, USER, PASSWORD, DATABASE);
 	if ($connection->connect_errno)
 	{
+		log_info("Failed to connect to MySQL: (" . $mysqli->connect_errno . ") " . $mysqli->connect_error);
 		return array();
 	}
 	
@@ -124,17 +128,17 @@ function get_all_subcategories(Category $current) {
 
 	if(!($stmt = $connection->prepare($command)))
 	{
-		 echo "Prepare failed: (" . $connection->errno . ") " . $connection->error;
+		 log_info("Prepare failed: (" . $connection->errno . ") " . $connection->error);
 	}
 	for($h = 0; $h < count($subcat); ++$h) {
 		$id = $subcat[$h]->id();
 		if(!$stmt->bind_param('s', $id))
 		{
-			echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+			log_info("Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error);
 		}
 		elseif (!$stmt->execute())
 		{
-			echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+			log_info("Execute failed: (" . $stmt->errno . ") " . $stmt->error);
 		}
 		$results = $stmt->get_result();
 		$new_categories = array();
@@ -175,6 +179,7 @@ function get_direct_parent_categories(Category $current) {
 	$connection = new mysqli(IP, USER, PASSWORD, DATABASE);
 	if ($connection->connect_errno)
 	{
+		log_info("Failed to connect to MySQL: (" . $mysqli->connect_errno . ") " . $mysqli->connect_error);
 		return array();
 	}
 	
@@ -188,15 +193,15 @@ function get_direct_parent_categories(Category $current) {
 
 	if(!($stmt = $connection->prepare($command)))
 	{
-		 echo "Prepare failed: (" . $connection->errno . ") " . $connection->error;
+		log_info("Prepare failed: (" . $connection->errno . ") " . $connection->error);
 	}
 	if(!$stmt->bind_param('s', $current->id()))
 	{
-		echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+		log_info("Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error);
 	}
 	elseif (!$stmt->execute())
 	{
-		echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+		log_info("Execute failed: (" . $stmt->errno . ") " . $stmt->error);
 	}
 	$results = $stmt->get_result();
 		
@@ -224,6 +229,7 @@ function get_all_parent_categories(Category $current) {
 	$connection = new mysqli(IP, USER, PASSWORD, DATABASE);
 	if ($connection->connect_errno)
 	{
+		log_info("Failed to connect to MySQL: (" . $mysqli->connect_errno . ") " . $mysqli->connect_error);
 		return array();
 	}
 	
@@ -240,16 +246,16 @@ function get_all_parent_categories(Category $current) {
 
 	if(!($stmt = $connection->prepare($command)))
 	{
-		 echo "Prepare failed: (" . $connection->errno . ") " . $connection->error;
+		 log_info("Prepare failed: (" . $connection->errno . ") " . $connection->error);
 	}
 	for($h = 0; $h < count($parent_cat); ++$h) {
 		if(!$stmt->bind_param('s', $parent_cat[$h]->id()))
 		{
-			echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+			log_info("Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error);
 		}
 		elseif (!$stmt->execute())
 		{
-			echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+			log_info("Execute failed: (" . $stmt->errno . ") " . $stmt->error);
 		}
 		$results = $stmt->get_result();
 		$new_categories = array();
@@ -286,22 +292,23 @@ function delete_category($id) {
 	$connection = new mysqli(IP, USER, PASSWORD, DATABASE);
 	if ($connection->connect_errno)
 	{
+		log_info("Failed to connect to MySQL: (" . $mysqli->connect_errno . ") " . $mysqli->connect_error);
 		return false;
 	}
 	$command = "DELETE FROM category WHERE category_id = ?";
 	if(!($stmt = $connection->prepare($command)))
 	{
-		echo "Prepare failed: (" . $connection->errno . ") " . $connection->error;
+		log_info("Prepare failed: (" . $connection->errno . ") " . $connection->error);
 		return false;
 	}
 	if(!$stmt->bind_param('s', $id))
 	{
-		echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+		log_info("Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error);
 		return false;
 	}
 	elseif (!$stmt->execute())
 	{
-		echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+		log_info("Execute failed: (" . $stmt->errno . ") " . $stmt->error);
 		return false;
 	}
 	return true;
@@ -312,23 +319,24 @@ function add_category($category, $description) {
 	$connection = new mysqli(IP, USER, PASSWORD, DATABASE);
 	if ($connection->connect_errno)
 	{
+		log_info("Failed to connect to MySQL: (" . $mysqli->connect_errno . ") " . $mysqli->connect_error);
 		return false;
 	}
 	$command = "INSERT INTO category (category, description) VALUES (?, ?)";
 	
 	if(!($stmt = $connection->prepare($command)))
 	{
-		echo "Prepare failed: (" . $connection->errno . ") " . $connection->error;
+		log_info("Prepare failed: (" . $connection->errno . ") " . $connection->error);
 		return false;
 	}
 	if(!$stmt->bind_param('ss', $category, $description))
 	{
-		echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+		log_info("Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error);
 		return false;
 	}
 	elseif (!$stmt->execute())
 	{
-		echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+		log_info("Execute failed: (" . $stmt->errno . ") " . $stmt->error);
 		return false;
 	}
 	return true;
@@ -339,23 +347,24 @@ function edit_category($id, $category, $description) {
 	$connection = new mysqli(IP, USER, PASSWORD, DATABASE);
 	if ($connection->connect_errno)
 	{
+		log_info("Failed to connect to MySQL: (" . $mysqli->connect_errno . ") " . $mysqli->connect_error);
 		return false;
 	}
 	$command = "UPDATE category SET category=?, description=? WHERE category_id=?";
 	
 	if(!($stmt = $connection->prepare($command)))
 	{
-		echo "Prepare failed: (" . $connection->errno . ") " . $connection->error;
+		log_info("Prepare failed: (" . $connection->errno . ") " . $connection->error);
 		return false;
 	}
 	if(!$stmt->bind_param('ssi', $category, $description, $id))
 	{
-		echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+		log_info("Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error);
 		return false;
 	}
 	elseif (!$stmt->execute())
 	{
-		echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+		log_info("Execute failed: (" . $stmt->errno . ") " . $stmt->error);
 		return false;
 	}
 	return true;
@@ -366,23 +375,24 @@ function add_relationship($child_id, $parent_id) {
 	$connection = new mysqli(IP, USER, PASSWORD, DATABASE);
 	if ($connection->connect_errno)
 	{
+		log_info("Failed to connect to MySQL: (" . $mysqli->connect_errno . ") " . $mysqli->connect_error);
 		return false;
 	}
 	$command = "INSERT INTO is_subcategory_of (subcategory_id, parentcategory_id) VALUES (?, ?)";
 	
 	if(!($stmt = $connection->prepare($command)))
 	{
-		echo "Prepare failed: (" . $connection->errno . ") " . $connection->error;
+		log_info("Prepare failed: (" . $connection->errno . ") " . $connection->error);
 		return false;
 	}
 	if(!$stmt->bind_param('ii', $child_id, $parent_id))
 	{
-		echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+		log_info("Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error);
 		return false;
 	}
 	elseif (!$stmt->execute())
 	{
-		echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+		log_info("Execute failed: (" . $stmt->errno . ") " . $stmt->error);
 		return false;
 	}
 	return true;
@@ -393,22 +403,23 @@ function delete_relationship($child_id, $parent_id) {
 	$connection = new mysqli(IP, USER, PASSWORD, DATABASE);
 	if ($connection->connect_errno)
 	{
+		log_info("Failed to connect to MySQL: (" . $mysqli->connect_errno . ") " . $mysqli->connect_error);
 		return false;
 	}
 	$command = "DELETE FROM is_subcategory_of WHERE subcategory_id = ? && parentcategory_id = ?;";
 	if(!($stmt = $connection->prepare($command)))
 	{
-		echo "Prepare failed: (" . $connection->errno . ") " . $connection->error;
+		log_info("Prepare failed: (" . $connection->errno . ") " . $connection->error);
 		return false;
 	}
 	if(!$stmt->bind_param('ii', $child_id, $parent_id))
 	{
-		echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+		log_info("Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error);
 		return false;
 	}
 	elseif (!$stmt->execute())
 	{
-		echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+		log_info("Execute failed: (" . $stmt->errno . ") " . $stmt->error);
 		return false;
 	}
 	return true;

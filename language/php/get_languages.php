@@ -6,6 +6,7 @@ function get_all_languages() {
 	$connection = new mysqli(IP, USER, PASSWORD, DATABASE);
 	if ($connection->connect_errno)
 	{
+		log_info("Failed to connect to MySQL: (" . $mysqli->connect_errno . ") " . $mysqli->connect_error);
 		return array();
 	}
 		
@@ -32,23 +33,24 @@ function get_by_language_id($id) {
 	$connection = new mysqli(IP, USER, PASSWORD, DATABASE);
 	if ($connection->connect_errno)
 	{
+		log_info("Failed to connect to MySQL: (" . $mysqli->connect_errno . ") " . $mysqli->connect_error);
 		return $language;
 	}
 	$command = 'SELECT * FROM language WHERE language_id = ? LIMIT 0, 1;';
 	
 	if(!($stmt = $connection->prepare($command)))
 	{
-		echo "Prepare failed: (" . $connection->errno . ") " . $connection->error;
+		log_info("Prepare failed: (" . $connection->errno . ") " . $connection->error);
 		return $language;
 	}
 	if(!$stmt->bind_param('s', $id))
 	{
-		echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+		log_info("Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error);
 		return $language;
 	}
 	elseif (!$stmt->execute())
 	{
-		echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+		log_info("Execute failed: (" . $stmt->errno . ") " . $stmt->error);
 		return $language;
 	}
 	$results = $stmt->get_result();
@@ -65,79 +67,85 @@ function delete_language($id) {
 	$connection = new mysqli(IP, USER, PASSWORD, DATABASE);
 	if ($connection->connect_errno)
 	{
+		log_info("Failed to connect to MySQL: (" . $mysqli->connect_errno . ") " . $mysqli->connect_error);
 		return false;
 	}
 	$command = "DELETE FROM language WHERE language_id = ?";
 	if(!($stmt = $connection->prepare($command)))
 	{
-		echo "Prepare failed: (" . $connection->errno . ") " . $connection->error;
+		log_info("Prepare failed: (" . $connection->errno . ") " . $connection->error);
 		return false;
 	}
 	if(!$stmt->bind_param('s', $id))
 	{
-		echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+		log_info("Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error);
 		return false;
 	}
 	elseif (!$stmt->execute())
 	{
-		echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+		log_info("Execute failed: (" . $stmt->errno . ") " . $stmt->error);
 		return false;
 	}
-	return true;
+	log_info("Deleted language with id of " . $id);
 	$connection->close();
+	return true;
 }
 
 function add_language($language) {
 	$connection = new mysqli(IP, USER, PASSWORD, DATABASE);
 	if ($connection->connect_errno)
 	{
+		log_info("Failed to connect to MySQL: (" . $mysqli->connect_errno . ") " . $mysqli->connect_error);
 		return false;
 	}
 	$command = "INSERT INTO language (language) VALUES (?)";
 	
 	if(!($stmt = $connection->prepare($command)))
 	{
-		echo "Prepare failed: (" . $connection->errno . ") " . $connection->error;
+		log_info("Prepare failed: (" . $connection->errno . ") " . $connection->error);
 		return false;
 	}
 	if(!$stmt->bind_param('s', $language))
 	{
-		echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+		log_info("Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error);
 		return false;
 	}
 	elseif (!$stmt->execute())
 	{
-		echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+		log_info("Execute failed: (" . $stmt->errno . ") " . $stmt->error);
 		return false;
 	}
-	return true;
+	log_info("Added " . $language . " with id of " . $connection->insert_id);
 	$connection->close();
+	return true;
 }
 
 function edit_language($id, $language) {
 	$connection = new mysqli(IP, USER, PASSWORD, DATABASE);
 	if ($connection->connect_errno)
 	{
+		log_info("Failed to connect to MySQL: (" . $mysqli->connect_errno . ") " . $mysqli->connect_error);
 		return false;
 	}
 	$command = "UPDATE language SET language=? WHERE language_id=?";
 	
 	if(!($stmt = $connection->prepare($command)))
 	{
-		echo "Prepare failed: (" . $connection->errno . ") " . $connection->error;
+		log_info("Prepare failed: (" . $connection->errno . ") " . $connection->error);
 		return false;
 	}
 	if(!$stmt->bind_param('si', $language, $id))
 	{
-		echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
+		log_info("Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error);
 		return false;
 	}
 	elseif (!$stmt->execute())
 	{
-		echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+		log_info("Execute failed: (" . $stmt->errno . ") " . $stmt->error);
 		return false;
 	}
-	return true;
 	$connection->close();
+	log_info("Changed language with id of " . $id . " to " . $language);
+	return true;
 }
 ?>

@@ -14,6 +14,44 @@
 	}
 	$list_of_languages = get_all_languages();
 ?>
+		<script>
+function checkForm() {
+	var form;
+	form = document.practice;
+	var array = getListWords();
+	var words = form.word;
+	var ids = form.wordID;
+	for(var i = 0; i < words.length; ++i) {
+		var result = checkWord(ids[i].value, words[i].value);
+		if(result) {
+			if(result.check === 1) {
+				words[i].style.backgroundColor = "#00FF00";
+				words[i].style.color = "#FFFFFF";
+			} else if(result.check === 0) {
+				words[i].style.backgroundColor = "#FFFF00";
+				words[i].style.color = "#000000";
+			} else if(result.check === -1) {
+				words[i].style.backgroundColor = "#FF0000";
+				words[i].style.color = "#FFFFFF";
+			}
+		}
+	}
+}
+		</script>
+		<script src="script/javascript.js"></script>
+		<script src="script/list_of_words.php<?php
+	if($current_category->is_init() || $current_language->is_init()) {
+		echo "?";
+	}
+	if($current_language->is_init()){
+		echo "language_id=" . $_GET['language_id'];
+	}
+	if($current_language->is_init() && $current_category->is_init()){
+		echo "&";
+	}
+	if($current_category->is_init()) {
+		echo "category_id=" . $_GET['category_id'];
+	}?>"></script>
 		<link rel="stylesheet" type="text/css" href="style.css">
 		<title><?php
 	echo ($current_language->is_init()) ? $current_language->language() : "Welcome to Language Helper";
@@ -62,15 +100,19 @@ if(isset($_SESSION['language_server_user'])) {
 								<a href="admin/categories.php">Category Options</a>
 							</p>
 							<p>
-								<a href="admin/langugaes.php">Language Options</a>
+								<a href="admin/languages.php">Language Options</a>
 							</p>
 							<p>
 								<a href="admin/words.php">Word Options</a>
 							</p>
+<?php
+		if(status() === 2) {
+?>
 							<p>
 								<a href="admin/users.php">User Options</a>
 							</p>
 <?php
+		}
 	}
 ?>
 							<p>
@@ -140,18 +182,44 @@ if(!$current_language->is_init()) {?>
 	}
 } else {
 	if(!$current_category->is_init()) {
+?>
+				<table class="choose">
+<?
 		$cats = get_all_categories();
 		foreach($cats as $cat) {
+			$word = get_words($cat, $current_language);
+			if(count($word) === 0) {
+				continue;
+			}
 ?>
-				<br/>
-				<a href="?language_id=<?php echo $current_language->id(); ?>&category_id=<?php echo $cat->id(); ?>"><?php echo $cat->category();?></a>
-				(<?php echo $num = count(get_words($cat, $current_language));?>)
+					<tr>
+						<th>
+							<a href="?language_id=<?php echo $current_language->id(); ?>&category_id=<?php echo $cat->id(); ?>">
+								<?php echo $cat->category();?>
+							</a>
+						</th>
+					</tr>
+					<tr>
+						<td>
+<?php
+			shuffle($word);
+			for($i = 0; (isset($word[$i])) && ($i < 5); ++$i) {
+?>
+							<img src="<?php echo 'images/' . $word[$i]->id() . '.' . $word[$i]->picture();?>" alt="">
+<?php
+			}
+?>
+						<td>
+					</tr>
 <?php
 		}
+?>
+				</table>
+<?php
 	} else	{
 ?>
 				<form name="practice">
-					<input type="button" onclick="" value="Submit">
+					<input type="button" value="Submit" onclick="checkForm()">
 					<table class="word_list">
 						<tr>
 <?php
@@ -165,13 +233,19 @@ if(!$current_language->is_init()) {?>
 								<table class="word">
 									<tr>
 										<td class="word_pic">
-											<img src="images/<?php echo $word->id() . '.' . $word->picture();?>">
+											<label for="word<?php echo $word->id();?>" >
+												<img src="images/<?php echo $word->id() . '.' . $word->picture();?>">
+											</label>
 										</td>
 									</tr>
 									<tr>
 										<td>
-											<input type="text" name="<?php echo $word->id(); ?>">
+											<input type="text" name="word" id="word<?php echo $word->id();?>">
+											<input type="hidden" name="wordID" value="<?php echo $word->id(); ?>">
 										</td>
+									</tr>
+									<tr>
+										<td id="answer<?php echo $word->id(); ?>"></td>
 									</tr>
 								</table>
 							</td>
@@ -186,7 +260,7 @@ if(!$current_language->is_init()) {?>
 ?>
 						</tr>
 					</table>
-					<input type="button" onclick="" value="Submit">
+					<input type="button" value="Submit" onclick="checkForm()">
 				</form>
 <?php
 	}

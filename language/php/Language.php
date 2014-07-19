@@ -4,7 +4,7 @@
 		private $id_;
 		private $language_;
 		
-		public function __constuct__() {
+		public function __construct__() {
 			$this->is_init_ = false;
 		}
 		

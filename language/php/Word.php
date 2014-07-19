@@ -8,7 +8,7 @@
 		private $picture_;
 		private $language_id_;
 	
-		public function __constuct__() {
+		public function __construct__() {
 			$this->is_init_ = false;
 		}
 				
