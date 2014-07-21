@@ -32,37 +32,25 @@
 		$id = $_SESSION['language_server_' . $_SESSION['language_server_rand_ID']];
 		$user = $_SESSION['language_server_user'];
 		
-		//If the mysql command fails at any point, then the admin level is 0
-		$connection = new mysqli(IP, USER, PASSWORD, DATABASE);
-		if ($connection->connect_errno)
-		{
-			echo "Cannot establish connection: (" . $connection->errno . ") " . $connection->error;
-			return 0;
-		}
-		$command = 'SELECT admin FROM accounts WHERE username = ? && account_id = ? LIMIT 0, 1;';
-		if(!($stmt = $connection->prepare($command)))
-		{
-			echo "Prepare failed: (" . $connection->errno . ") " . $connection->error;
-			return 0;
-		}
-		if(!$stmt->bind_param('ss', $user, $id))
-		{
-			echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
-			return 0;
-		}
-		elseif (!$stmt->execute())
-		{
-			echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
-			return 0;
-		}
-		$results = $stmt->get_result();
-		$connection->close();
-    	if($results->num_rows != 0) {
-	    	$results->data_seek(0);
-			$result = $results->fetch_assoc();
-			return $result['admin'];
-		}
-		else {
+		//If PDO fails at any point, then the admin level is 0
+		try {
+			$connect = new PDO('mysql:host=' . IP . '; dbname=' . DATABASE . ';charset=utf8', USER, PASSWORD);
+			$connect->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			$connect->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+	
+			$command = 'SELECT admin FROM accounts WHERE username = :user && account_id = :id LIMIT 0, 1;';
+	
+			$stmt = $connect->prepare($command);
+			$stmt->bindValue(':id', (int)$id, PDO::PARAM_INT);
+			$stmt->bindValue(':user', $user, PDO::PARAM_STR);
+			$stmt->execute();
+	
+			
+			$result = $stmt->fetchAll();
+			
+			return (isset($result[0])) ? $result[0]['admin'] : 0;
+		} catch(PDOException $ex) {
+			log_info($ex->getMessage());
 			return 0;
 		}
 	}
@@ -76,37 +64,26 @@
 			return 0;
 		}
 		
+		//If PDO fails at any point, then the admin level is 0
 		$connection = new mysqli(IP, USER, PASSWORD, DATABASE);
 		if ($connection->connect_errno)
-		{
-			echo "Cannot establish connection: (" . $connection->errno . ") " . $connection->error;
-			return 0;
-		}
-		$command = 'SELECT admin FROM accounts WHERE username = ? LIMIT 0, 1;';
-		
-		if(!($stmt = $connection->prepare($command)))
-		{
-			echo "Prepare failed: (" . $connection->errno . ") " . $connection->error;
-			return 0;
-		}
-		if(!$stmt->bind_param('s', $username))
-		{
-			echo "Binding parameters failed: (" . $stmt->errno . ") " . $stmt->error;
-			return 0;
-		}
-		elseif (!$stmt->execute())
-		{
-			echo "Execute failed: (" . $stmt->errno . ") " . $stmt->error;
-			return 0;
-		}
-		$results = $stmt->get_result();
-		$connection->close();
-    	if($results->num_rows != 0) {
-	    	$results->data_seek(0);
-			$result = $results->fetch_assoc();
-			return $result['admin'];
-		}
-		else {
+		try {
+			$connect = new PDO('mysql:host=' . IP . '; dbname=' . DATABASE . ';charset=utf8', USER, PASSWORD);
+			$connect->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			$connect->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+	
+			$command = 'SELECT admin FROM accounts WHERE username = :user LIMIT 0, 1;';
+	
+			$stmt = $connect->prepare($command);
+			$stmt->bindValue(':user', $user, PDO::PARAM_STR);
+			$stmt->execute();
+	
+			
+			$result = $stmt->fetchAll();
+			
+			return (isset($result[0])) ? $result['admin'] : 0;
+		} catch(PDOException $ex) {
+			log_info($ex->getMessage());
 			return 0;
 		}
 	}
@@ -118,82 +95,77 @@
 	 */
 	function get_all_accounts() {
 		$status = status();
+		$users = array();
 		$command = "";
 		
 		if($status) {
-			if($status === 2) {
-				$command = "SELECT username, first_name, last_name, admin FROM accounts;";
-			} else {
-				$command = "SELECT username, first_name, last_name FROM accounts;";
-			}
+			$command = ($status === 2) ?
+				"SELECT username, first_name, last_name, admin FROM accounts;" :
+				"SELECT username, first_name, last_name FROM accounts;";
 		} else {
-			return array();
+			return $users;
 		}
+		try {
+			$connect = new PDO('mysql:host=' . IP . '; dbname=' . DATABASE . ';charset=utf8', USER, PASSWORD);
+			$connect->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			$connect->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+			
+			$stmt = $connect->prepare($command);
+			$stmt->execute();
+			$results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+			
+			//Clean the array of any PDO stuff
+			foreach($results as $row){
+				$users[] = $row;
+			}
 		
-		$connection = new mysqli(IP, USER, PASSWORD, DATABASE);
-		if ($connection->connect_errno)
-		{
-			return array();
+			return $users;
+		} catch(PDOException $ex) {
+			log_info($ex->getMessage());
+			return $users;
 		}
-			
-		$results = $connection->query($command);
-		$connection->close();
-			
-		$users = array();
-			
-		for($i = 0; $i < $results->num_rows; $i++)
-		{
-			$results->data_seek($i);
-			$users[$i] = $results->fetch_assoc();
-		}
-		return $users;
 	}
 	
 	/* Changes the password in the database
 	 * @returns (bool) true if successful
-	 * @note if the sufficent_status function fail, then this will fail
 	 */
 	function change_password($username, $password, $comfirm_pass) {
-		$connection = new mysqli(IP, USER, PASSWORD, DATABASE);
-		if ($connection->connect_errno)
-		{
-			return false;
-		}
-		
 		if(
 				(!isset($password) || $password === '')
 				|| (!isset($comfirm_pass) || $comfirm_pass === '')
 				|| !($password === $comfirm_pass)
-		) {
+			) {
 			return false;
 		}
 		
 		$status = status();
-		
 		if($status !== 2) {
 			return false;
 		}
 		
-		$command = "UPDATE accounts SET password=? WHERE username=?;";
+		try {
+			$connect = new PDO('mysql:host=' . IP . '; dbname=' . DATABASE . ';charset=utf8', USER, PASSWORD);
+			$connect->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			$connect->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
 		
-		if(!($stmt = $connection->prepare($command))) {
+			$command = "UPDATE accounts SET password=:pass WHERE username=:user;";
+			
+			$stmt = $connect->prepare($command);
+			$stmt->bindValue(':user', $username, PDO::PARAM_STR);
+			$stmt->bindValue(':pass', hash_password($username, $password), PDO::PARAM_STR);
+			$stmt->execute();
+			
+			return true;
+		} catch(PDOException $ex) {
+			log_info($ex->getMessage());
 			return false;
 		}
-		if(!$stmt->bind_param('ss', hash_password($username, $password), $username)) {
-			return false;
-		}
-		elseif (!$stmt->execute()) {
-			return false;
-		}
-		return true;
-		$connection->close();
 	}
 	
 	/* Changes the admin level of the user
 	 * @param $username - target user
 	 * @param $new_status - the status that the user will change to
 	 * @returns (bool) true if successful
-	 * @note if the sufficent_status function fail, then this will fail
 	 */
 	function change_status($username, $new_status) {
 		if($username === $_SESSION['language_server_user']) {
@@ -204,110 +176,95 @@
 			return false;
 		}
 		
-		$connection = new mysqli(IP, USER, PASSWORD, DATABASE);
-		if ($connection->connect_errno)
-		{
+		if(status() !== 2) {
 			return false;
 		}
 		
-		$status = status();
+		try {
+			$connect = new PDO('mysql:host=' . IP . '; dbname=' . DATABASE . ';charset=utf8', USER, PASSWORD);
+			$connect->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			$connect->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
 		
-		if($status !== 2) {
+			$command = "UPDATE accounts SET admin=:admin WHERE username=:user;";
+			
+			$stmt = $connect->prepare($command);
+			$stmt->bindValue(':user', $username, PDO::PARAM_STR);
+			$stmt->bindValue(':admin', $new_status, PDO::PARAM_INT);
+			$stmt->execute();
+			
+			return true;
+		} catch(PDOException $ex) {
+			log_info($ex->getMessage());
 			return false;
 		}
-		
-		$command = "UPDATE accounts SET admin=? WHERE username=?;";
-		
-		if(!($stmt = $connection->prepare($command))) {
-			return false;
-		}
-		if(!$stmt->bind_param('is', $new_status, $username)) {
-			return false;
-		}
-		elseif (!$stmt->execute()) {
-			return false;
-		}
-		return true;
-		$connection->close();
 	}
 	
 	/* Deletes user
 	 * @returns (bool) true if successful
-	 * @note if the sufficent_status function fail, then this will fail
 	 */
 	function delete_user($username) {
 		if($username === $_SESSION['language_server_user']) {
 			return false;
 		}
 		
-		$connection = new mysqli(IP, USER, PASSWORD, DATABASE);
-		if ($connection->connect_errno)
-		{
+		if(status() !== 2) {
 			return false;
 		}
 		
-		$status = status();
-		
-		if($status !== 2) {
+		try {
+			$connect = new PDO('mysql:host=' . IP . '; dbname=' . DATABASE . ';charset=utf8', USER, PASSWORD);
+			$connect->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			$connect->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+			
+			$command = "DELETE FROM accounts WHERE username=:user;";
+			
+			$stmt = $connect->prepare($command);
+			$stmt->bindValue(':user', $username, PDO::PARAM_STR);
+			$stmt->execute();
+			
+			return true;
+		} catch(PDOException $ex) {
+			log_info($ex->getMessage());
 			return false;
 		}
-		
-		$command = "DELETE FROM accounts WHERE username=?;";
-		
-		if(!($stmt = $connection->prepare($command))) {
-			return false;
-		}
-		if(!$stmt->bind_param('s', $username)) {
-			return false;
-		}
-		elseif (!$stmt->execute()) {
-			return false;
-		}
-		return true;
-		$connection->close();
 	}
 	
 	/* Adds user
 	 * @returns (bool) true if successful
 	 */
 	function add_user($username, $first_name, $last_name) {
-		$connection = new mysqli(IP, USER, PASSWORD, DATABASE);
-		if ($connection->connect_errno)
-		{
+		if(status() !== 2) {
 			return false;
 		}
 		
-		$status = status();
-		
-		if($status !== 2) {
+		try {
+			$connect = new PDO('mysql:host=' . IP . '; dbname=' . DATABASE . ';charset=utf8', USER, PASSWORD);
+			$connect->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			$connect->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+			
+			$command = "INSERT INTO accounts (username, password, first_name, last_name, admin)  VALUES (:user, :pass, :first, :last, 0);";
+			
+			$stmt = $connect->prepare($command);
+			$stmt->bindValue(':user', $username, PDO::PARAM_STR);
+			$stmt->bindValue(':pass', hash_password($username, null), PDO::PARAM_STR);
+			$stmt->bindValue(':first', $first_name, PDO::PARAM_STR);
+			$stmt->bindValue(':last', $last_name, PDO::PARAM_STR);
+			$stmt->execute();
+			
+			return true;
+		} catch(PDOException $ex) {
+			log_info($ex->getMessage());
 			return false;
 		}
-		
-		$command = "INSERT INTO accounts (username, password, first_name, last_name, admin)  VALUES (?, ?, ?, ?, 0);";
-		
-		if(!($stmt = $connection->prepare($command))) {
-			return false;
-		}
-		if(!$stmt->bind_param('ssss', $username, hash_password($username, null), $first_name, $last_name)) {
-			return false;
-		}
-		elseif (!$stmt->execute()) {
-			return false;
-		}
-		return true;
-		$connection->close();
 	}
 	
 	function log_info($message) {
-		$author = 'Unknown User';
-		if(isset($_SESSION['language_server_user'])) {
-			$author = $_SESSION['language_server_user'];
-		}
+		$author = (isset($_SESSION['language_server_user'])) ? $_SESSION['language_server_user'] : 'Unknown User';
 		
 		$time = date("l jS \of F Y h:i:s A");
 		
 		$entry = $time . "\nUser: " . $author . "\nAction: " . $message . "\n\n";
-		
+		echo $entry;
 		return true === file_put_contents('../logs.txt', $entry, FILE_APPEND | LOCK_EX);
 	}
 ?>

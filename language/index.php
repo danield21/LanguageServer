@@ -4,15 +4,43 @@
 <?php
 	session_start();
 	require_once 'php/all.php';
+	$admin = status();
+	
+	$lt = new LanguagesTable(IP, USER, PASSWORD, DATABASE);
+	$ct = new CategoriesTable(IP, USER, PASSWORD, DATABASE);
+	$wt = new WordsTable(IP, USER, PASSWORD, DATABASE);
+	
 	$current_language = new Language;
+	$current_category = new Category;
+	
+	
+	$language_list = $lt->get_all();
+	$category_list = $ct->get_all();
+	
+	$header = 0;
+	
 	if(isset($_GET['language_id'])) {
-		$current_language = get_by_language_id($_GET['language_id']);
+		$current_language = $lt->get_by_id($_GET['language_id']);
 	}
-	$list_of_languages = get_all_languages();
+	if(isset($_GET['category_id'])) {
+		$current_category = $ct->get_by_id($_GET['category_id']);
+	}
+	
+	if($current_language->is_valid() && isset($_GET['activity'])) {
+		$temp_cats = array();
+		foreach($category_list as $cat) {
+			$word = $wt->get_by_filter($cat, $current_language);
+			if(isset($word[0])) {
+				$temp_cats[] = $cat;
+			}
+		}
+		$category_list = $temp_cats;
+	}
 ?>
-		<link rel="stylesheet" type="text/css" href="style.css">
+		<meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
+		<link rel="stylesheet" type="text/css" href="style.php">
 		<title><?php
-	echo ($current_language->is_init()) ? $current_language->language() : "Welcome to Language Helper";
+	echo ($current_language->is_valid()) ? $current_language->language : "Welcome to Language Helper";
 ?></title>
 	</head>
 	<body>
@@ -22,148 +50,180 @@
 					<img src="logo.png" alt="Some type of logo" class="logo" border="0">
 				</a>
 				<nav>
-					<section id="left_menu" class="menu">
-						<div class="menu_title">
-							<a href="<?php echo ROOT?>">Choose Language</a>
+					<section class="left_menu">
+						<div>
+							<a href="./">Home</a>
 						</div>
-						<section class="sub_menu">
+						<div>
+							<p>Language</p>
+							<section>
 <?php
-foreach($list_of_languages as $language) {
+foreach($language_list as $language) {
 ?>
-							<p>
-								<a href="?language_id=<?php echo $language->id(); ?>">
-									<?php echo $language->language(). "\n"; ?>
+								<a href="?language_id=<?php echo $language->id; ?>">
+									<?php echo $language->language. "\n"; ?>
 								</a>
-							</p>
 <?php
 }
 ?>
-						</section>
+							</section>
+						</div>
+<?php
+if($current_language->is_valid())
+{
+?>
+						<div>
+							<p>Activity</p>
+							<section>
+								<a href="./?language_id=<?php echo $current_language->id; ?>&activity=study">
+									Study&nbsp;Words
+								</a>
+								<a href="./?language_id=<?php echo $current_language->id; ?>&activity=practice">
+									Practice&nbsp;Words
+								</a>
+							</section>
+						</div>
+<?php
+	if(isset($_GET['activity'])) {
+?>
+						<div>
+							<p>Category</p>
+							<section>
+<?php
+		foreach($category_list as $category) {
+?>
+								<a href="./?language_id=<?php echo $current_language->id; ?>&activity=<?php echo $_GET['activity'];?>&category_id=<?php echo $category->id?>"><?php echo $category->category?></a>
+<?php
+		}
+?>
+							</section>
+						</div>
+<?php
+	}
+}
+?>
 					</section>
-					<section id="right_menu" class="menu">
+					<section class="right_menu">
+						<div>
 <?php
 if(isset($_SESSION['language_server_user'])) {
 ?>
-						<div class="menu_title">
-							<?php echo $_SESSION['language_server_user'];?>
-						</div>
-						<section class="sub_menu">
+							<p><?php echo $_SESSION['language_server_user'];?></p>
+							<section>
+								<a href="./settings/">Settings</a>
 <?php
-	if(status()) {
-?>
-							<p>
-								<a href="admin/">Admin Account</a>
-							</p>
-							<p>
-								<a href="admin/categories.php">Category Options</a>
-							</p>
-							<p>
-								<a href="admin/languages.php">Language Options</a>
-							</p>
-							<p>
-								<a href="admin/words.php">Word Options</a>
-							</p>
-<?php
-		if(status() === 2) {
-?>
-							<p>
-								<a href="admin/users.php">User Options</a>
-							</p>
-<?php
-		}
+	$aot = new AccountOptionsTable(IP, USER, PASSWORD, DATABASE);
+	$options = $aot->get_min($admin);
+	foreach($options as $option) {
+		echo "\t\t\t\t\t\t\t\t" . $option->get_link('settings') . "\n";
 	}
 ?>
-							<p>
-								<a href="logout.php">Logout</a>
-							</p>
-						</section>
+								<a href="./logout.php">Logout</a>
+							</section>
 <?php
 } else {
 ?>
-						<div class="menu_title">
-							Login
-						</div>
-						<section class="sub_menu">
+							<p>Login</p>
+							<section>
 <?php
 	if(isset($_GET['bad_password']) && $_GET['bad_password']) {
 ?>
-							<p class="bad">Username/Password is invalid</p>
+								<p class="bad">Username/Password is invalid</p>
 <?php
 	}
 ?>
-							<form action="login.php?redirect=<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
-								<table>
-									<tr>
-										<td>
-											Username:
-										</td>
-										<td>
-											<input type="text" name="user"/>
-										</td>
-									</tr>
-									<tr>
-										<td>
-											Password:
-										</td>
-										<td>
-											<input type="password" name="pass">
-										</td>
-									</tr>
-									<tr>
-										<td>
-											<input type="submit" name="login" value="Login">
-										</td>
-										<td>&nbsp;</td>
-									</tr>
-								</table>
-							</form>
-						</section>
+								<form action="./login.php?redirect=<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
+									<table>
+										<tr>
+											<td>
+												Username:
+											</td>
+											<td>
+												<input type="text" name="user"/>
+											</td>
+										</tr>
+										<tr>
+											<td>
+												Password:
+											</td>
+											<td>
+												<input type="password" name="pass">
+											</td>
+										</tr>
+										<tr>
+											<td>
+												<input type="submit" name="login" value="Login">
+											</td>
+											<td>&nbsp;</td>
+										</tr>
+									</table>
+								</form>
+							</section>
 <?php
 }
 ?>
+						</div>
 					</section>
 				</nav>
 			</header>
 			<section id="body_content">
 				<div></div>
 <?php
-if(!$current_language->is_init()) {?>
+if(!$current_language->is_valid()) {?>
 				Choose one of the following languages:
 <?php 
-	foreach($list_of_languages as $language) {
+	foreach($language_list as $language) {
 ?>
 				<br />
-				<a href="?language_id=<?php echo $language->id(); ?>">
-					<?php echo $language->language() . "\n"; ?>
+				<a href="?language_id=<?php echo $language->id; ?>">
+					<?php echo $language->language . "\n"; ?>
 				</a>
 <?php
 	}
-} else {
-	$num = count(get_words(new Category, $current_language));
+} elseif(!isset($_GET['activity'])) {
+	$num = count($wt->get_by_language($current_language));
 	echo 'There';
 	echo ($num == 1) ? ' is ' : ' are ';
 	echo $num;
 	echo ($num == 1) ? ' word' : ' words';
-	echo ' in ' . $current_language->language();
+	echo ' in ' . $current_language->language;
 ?>
 				<br />
 				What would you like to do?
 				<br>
-				<table class="choose">
+				<table class="activities">
 					<tr>
 						<td>
-							<a href="study_words.php?language_id=<?php echo $current_language->id(); ?>">
+							<a href="./?language_id=<?php echo $current_language->id; ?>&activity=study">
 								Study Words
 							</a>
 						</td>
 						<td>
-							<a href="practice_words.php?language_id=<?php echo $current_language->id(); ?>">
+							<a href="./?language_id=<?php echo $current_language->id; ?>&activity=practice">
 								Practice Words
 							</a>
 						</td>
 					</tr>
 				</table>
 <?php
+} else {
+	switch($_GET['activity']) {
+		case 'study':
+			if((@include 'study.php') === false) {
+				echo 'Not Found. Please try again.';
+				log_info('File study.php is not found');
+			}
+			break;
+		case 'practice':
+			if((@include 'practice.php') === false) {
+				echo 'Not Found. Please try again.';
+				log_info('File practice.php is not found');
+			}
+			break;
+		default:
+			echo 'Not Found';
+			break;
+	}
 }
 ?>
 			</section>

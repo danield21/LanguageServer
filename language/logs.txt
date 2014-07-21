@@ -1,8 +1,16 @@
-Tuesday 1st of April 2014 01:26:25 AM
+Wednesday 16th of July 2014 05:57:18 PM
 User: administrator
-Action: Added French with id of 9
+Action: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'language_server.account_options' doesn't exist
 
-Tuesday 1st of April 2014 01:30:49 AM
+Wednesday 16th of July 2014 05:57:55 PM
 User: administrator
-Action: Deleted language with id of 9
+Action: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'language_server.account_options' doesn't exist
+
+Wednesday 16th of July 2014 06:28:47 PM
+User: administrator
+Action: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'language_server.account_options' doesn't exist
+
+Wednesday 16th of July 2014 06:58:55 PM
+User: administrator
+Action: File words.php is not found
 
