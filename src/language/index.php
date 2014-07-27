@@ -209,13 +209,13 @@ if(!$current_language->is_valid()) {?>
 } else {
 	switch($_GET['activity']) {
 		case 'study':
-			if((@include 'study.php') === false) {
+			if(!file_exists('study.php') || !include 'study.php') {
 				echo 'Not Found. Please try again.';
 				log_info('File study.php is not found');
 			}
 			break;
 		case 'practice':
-			if((@include 'practice.php') === false) {
+			if(!file_exists('practice.php') || !include 'practice.php'){
 				echo 'Not Found. Please try again.';
 				log_info('File practice.php is not found');
 			}

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<settings>
+	<setting key="categories" min="1">
+		<title>Category</title>
+	</setting>
+	<setting key="languages" min="1">
+		<title>Language</title>
+	</setting>
+	<setting key="words" min="1">
+		<title>Word</title>
+	</setting>
+	<setting key="users" min="2">
+		<title>Users</title>
+	</setting>
+</settings>

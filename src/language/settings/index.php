@@ -5,8 +5,8 @@
 	session_start();
 	require_once '../php/all.php';
 	$admin = status();
-	$aot = new AccountOptionsTable(IP, USER, PASSWORD, DATABASE);
-	$options = $aot->get_min($admin);
+	$st = new SettingsTable('settings.xml');
+	$settings = $st->get_min($admin);
 ?>
 		<meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
 		<link rel="stylesheet" type="text/css" href="./style.php">
@@ -17,7 +17,7 @@
 	<body>
 		<div id="background">
 			<header>
-				<a href="<?php echo ROOT?>">
+				<a href="../">
 					<img src="../logo.png" alt="Some type of logo" class="logo" border="0">
 				</a>
 				<nav>
@@ -27,26 +27,23 @@
 						</div>
 					</section>
 					<section class="right_menu">
+						<div>
 <?php
 if(isset($_SESSION['language_server_user'])) {
 ?>
-						<div>
 							<p><?php echo $_SESSION['language_server_user'];?></p>
 							<section>
 								<a href="./">Settings</a>
 <?php
-	foreach($options as $option) {
-		echo "\t\t\t\t\t\t\t\t" . $option->get_link() . "\n";
+	foreach($settings as $setting) {
+		echo "\t\t\t\t\t\t\t\t" . $setting->get_link() . "\n";
 	}
 ?>
 								<a href="../logout.php">Logout</a>
 							</section>
-						</div>
-					</section>
 <?php
 } else {
 ?>
-						<div>
 							<p>Login</p>
 <?php
 	if(isset($_GET['bad_password']) && $_GET['bad_password']) {
@@ -86,6 +83,7 @@ if(isset($_SESSION['language_server_user'])) {
 <?php
 }
 ?>
+						</div>
 					</section>
 				</nav>
 			</header>
@@ -97,21 +95,21 @@ if($admin) {
 ?>
 				<table class="option">
 <?php
-		foreach($options as $option) {
+		foreach($settings as $setting) {
 ?>
 					<tr>
 						<th style="padding:5pt;">
-							<?php echo $option->get_link() . "\n";?>
+							<?php echo $setting->get_link() . "\n";?>
 						</th>
 					</tr>
 <?php
 		}
 	} else {
-		foreach($options as $option) {
-			if($option->key === $_GET['setting']) {
-				if((include $option->key . '.php') === false) {
+		foreach($settings as $setting) {
+			if($setting->key === $_GET['setting']) {
+				if(!file_exists($setting->filename()) || !include $setting->filename()) {
 					echo 'Not Found. Please try again.';
-					log_info('File ' . $option->key . '.php is not found');
+					log_info('File ' . $setting->filename() . ' is not found');
 				}
 				break;
 			}
@@ -123,7 +121,7 @@ if($admin) {
 <?php
 }
 ?>
-			</section>
-		</div>
-	</body>
+		</section>
+	</div>
+</body>
 </html>
