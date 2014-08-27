@@ -4,11 +4,16 @@
 <?php
 	session_start();
 	require_once 'php/all.php';
-	$admin = status();
 	
+	$at = new AccountsTable(IP, USER, PASSWORD, DATABASE);
 	$lt = new LanguagesTable(IP, USER, PASSWORD, DATABASE);
 	$ct = new CategoriesTable(IP, USER, PASSWORD, DATABASE);
 	$wt = new WordsTable(IP, USER, PASSWORD, DATABASE);
+	
+	$current_user = new Account;
+	if(isset($_SESSION['language_server_user']) && isset($_SESSION['language_server_key'])) {
+		$current_user = $at->get_by_id($_SESSION['language_server_user'], $_SESSION['language_server_key']);
+	}
 	
 	$current_language = new Language;
 	$current_category = new Category;
@@ -38,7 +43,7 @@
 	}
 ?>
 		<meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
-		<link rel="stylesheet" type="text/css" href="style.php">
+		<link rel="stylesheet" type="text/css" href="styles/main.php">
 		<title><?php
 	echo ($current_language->is_valid()) ? $current_language->language : "Welcome to Language Helper";
 ?></title>
@@ -46,7 +51,7 @@
 	<body>
 		<div id="background">
 			<header>
-				<a href="<?php echo ROOT?>">
+				<a href="./">
 					<img src="logo.png" alt="Some type of logo" class="logo" border="0">
 				</a>
 				<nav>
@@ -106,16 +111,16 @@ if($current_language->is_valid())
 					<section class="right_menu">
 						<div>
 <?php
-if(isset($_SESSION['language_server_user'])) {
+if($current_user->is_valid()) {
 ?>
-							<p><?php echo $_SESSION['language_server_user'];?></p>
+							<p><?php echo $current_user->user;?></p>
 							<section>
 								<a href="./settings/">Settings</a>
 <?php
-	$aot = new AccountOptionsTable(IP, USER, PASSWORD, DATABASE);
-	$options = $aot->get_min($admin);
-	foreach($options as $option) {
-		echo "\t\t\t\t\t\t\t\t" . $option->get_link('settings') . "\n";
+	$st = new SettingsTable('settings/settings.xml');
+	$settings = $st->get_min($current_user->admin);
+	foreach($settings as $setting) {
+		echo "\t\t\t\t\t\t\t\t" . $setting->get_link('settings') . "\n";
 	}
 ?>
 								<a href="./logout.php">Logout</a>

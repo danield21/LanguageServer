@@ -1,18 +1,8 @@
 <?php
+	require_once 'MysqlTable.php';
 	require_once 'Language.php';
 
-	class LanguagesTable {
-		private $ip_;
-		private $user_;
-		private $pass_;
-		private $db_;
-	
-		public function __construct($ip, $user, $pass, $db) {
-			$this->ip_ = $ip;
-			$this->user_ = $user;
-			$this->pass_ = $pass;
-			$this->db_ = $db;
-		}
+	class LanguagesTable extends MysqlTable {
 		
 		public function get_all() {
 			try {

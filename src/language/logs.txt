@@ -14,3 +14,59 @@ Wednesday 16th of July 2014 06:58:55 PM
 User: administrator
 Action: File words.php is not found
 
+Tuesday 19th of August 2014 09:22:48 PM
+User: 1
+Action: Changed Account with id of 17 to danield
+
+Tuesday 19th of August 2014 09:22:55 PM
+User: 1
+Action: Changed Account with id of 17 to danield
+
+Tuesday 19th of August 2014 09:27:23 PM
+User: 1
+Action: Changed Account with id of 17 to danield
+
+Tuesday 19th of August 2014 09:45:42 PM
+User: 1
+Action: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'hahaha' for key 'username_UNIQUE'
+
+Tuesday 19th of August 2014 09:47:03 PM
+User: 1
+Action: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'hahaha' for key 'username_UNIQUE'
+
+Tuesday 19th of August 2014 09:47:24 PM
+User: 1
+Action: Changed Account with id of 20 to hahaha
+
+Tuesday 19th of August 2014 09:48:33 PM
+User: 1
+Action: Changed Account with id of 20 to hahaha
+
+Tuesday 19th of August 2014 09:48:33 PM
+User: 1
+Action: Changed Account with id of 20 to hahaha
+
+Tuesday 19th of August 2014 09:49:10 PM
+User: 1
+Action: Deleted Account: hahaha from table with id: 20
+
+Tuesday 19th of August 2014 09:49:14 PM
+User: 1
+Action: Deleted Account: hahaha from table with id: 20
+
+Tuesday 19th of August 2014 09:49:20 PM
+User: 1
+Action: Deleted Account: akdsjfklj from table with id: 19
+
+Tuesday 19th of August 2014 09:49:25 PM
+User: 1
+Action: Deleted Account: akdsjfklj from table with id: 19
+
+Tuesday 19th of August 2014 09:51:50 PM
+User: 1
+Action: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry 'hahaha' for key 'username_UNIQUE'
+
+Tuesday 19th of August 2014 09:51:55 PM
+User: 1
+Action: Deleted Account: hahaha from table with id: 23
+

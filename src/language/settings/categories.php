@@ -1,20 +1,48 @@
 <?php
 	$table = new CategoriesTable(IP, USER, PASSWORD, DATABASE);
 	
-	if($admin) {
+	if($setting->min_admin <= $current_user->admin) {
 		if(isset($_POST["add"]["change"])) {
-			echo (new Category($_POST["add"]))->category;
+			$addedCat = new Category($_POST["add"]);
+			$table->add($addedCat);
 		}
 		if(isset($_POST["item"])) {
 			foreach($_POST["item"] as $item) {
 				if(isset($item["change"])) {
+					$targetedCat = new Category($item);
 					if($item["change"] === "edit") {
-						echo (new Category($item))->category;
+						$table->edit($target);
 					}
 					if($item["change"] === "delete") {
-						echo (new Category($item))->category;
+						$table->delete($target);
 					}
 				}
+			}
+		}
+		if(isset($_POST["child"])) {
+			foreach($_POST["child"] as $parent => $child) {
+				if(isset($child["change"])) {
+					$parentCat = $table->get_by_id($parent);
+					$childCat = $table->get_by_id($child["value"]);
+					$table->add_relationship($childCat, $parentCat);
+				}
+			}
+		}
+		if(isset($_POST["parent"])) {
+			foreach($_POST["parent"] as $child => $parent) {
+				if(isset($parent["change"])) {
+					$parentCat = $table->get_by_id($parent["value"]);
+					$childCat = $table->get_by_id($child);
+					$table->add_relationship($childCat, $parentCat);
+				}
+			}
+		}
+		if(isset($_POST["remove"])) {
+			foreach($_POST["remove"] as $child => $parent) {
+				$table->delete_relationship(
+							new Category(["category_id" => $child]),
+							new Category(["category_id" => $parent])
+						);
 			}
 		}
 	}
@@ -24,40 +52,59 @@
 				<script src="../script/jquery.js"></script>
 				<script>
 					function makeAddable() {
-						if($("#add").is(":checked")) {
+						if($("#addbox").is(":checked")) {
+							$("#noAdd").css("display", "none");
+							$("#add").css("display", "initial");
 						} else {
+							$("#noAdd").css("display", "initial");
+							$("#add").css("display", "none");
 						}
 					}
 					function makeEditable(id) {
 						if($("#editbox" + id).is(":checked")) {
 							if($("#deletebox" + id).is(":checked")) {
 								$("#deletebox" + id).prop('checked', false);
-								$("#stay" + id + " .category").css("text-decoration", "none");
-								$("#stay" + id + " .description").css("text-decoration", "none");
+								makeDeletable(id);
 							}
 							$("#stay" + id).css("display", "none");
 							$("#edit" + id).css("display", "initial");
 						} else {
 							$("#stay" + id).css("display", "initial");
 							$("#edit" + id).css("display", "none");
+							
+							$("#addchildbox" + id).prop('checked', false);
+							$("#addparentbox" + id).prop('checked', false);
+							createRelation("child", id);
+							createRelation("parent", id);
 						}
 					}
 					function makeDeletable(id) {
 						if($("#deletebox" + id).is(":checked")) {
 							if($("#editbox" + id).is(":checked")) {
 								$("#editbox" + id).prop('checked', false);
-								$("#edit" + id).css("display", "none");
-								$("#stay" + id).css("display", "initial");
+								makeEditable(id);
 							}
 							$("#stay" + id + " .category").css("text-decoration", "line-through");
 							$("#stay" + id + " .description").css("text-decoration", "line-through");
+							
+							$("#addchildbox" + id).prop('checked', false);
+							$("#addparentbox" + id).prop('checked', false);
+							createRelation("child", id);
+							createRelation("parent", id);
+							
 						} else {
 							$("#stay" + id + " .category").css("text-decoration", "none");
 							$("#stay" + id + " .description").css("text-decoration", "none");
 						}
 					}
-					function createRelation(parent, child, check) {
-						
+					function createRelation(type, id) {
+						if($("#add" + type + "box" + id).is(":checked")) {
+							$("#add" + type + "for" + id).css("display", "none");
+							$("#" + type + "options" + id).css("display", "initial");
+						} else {
+							$("#" + type + "options" + id).css("display", "none");
+							$("#add" + type + "for" + id).css("display", "initial");
+						}
 					}
 					function removeRelation(parent, child, check) {
 						$("input:checkbox.parent" + parent + "child" + child).prop("checked", check);
@@ -68,9 +115,37 @@
 						}
 					}
 				</script>
-				<form id="category" method="post" action="./?setting=<?php echo $option->key; ?>">
+				<form id="category" method="post" action="./?setting=<?php echo $setting->key; ?>">
 					<input type="submit" value="Save Changes">
 						<table>
+							<tr class="lowlight">
+								<td class="fields">
+									<div id="add" style="display: none;">
+										<div class="category">
+											<p class="name">Title</p>
+											<input type="text" name="add[category]"/>
+										</div>
+										<div class="description">
+											<p class="name">Description</p>
+											<input type="text" name="add[description]"/>
+										</div>
+									</div>
+									<div id="noAdd">
+										<div class="category">
+											Category
+										</div>
+										<div class="description">
+											Description goes here
+										</div>
+									</div>
+								</td>
+								<td class="boxes">
+									<label for="addbox">
+										<input type="checkbox" value="add" name="add[change]" onchange="makeAddable()" id="addbox"/>
+										Add
+									</label>
+								</td>
+							</tr>
 <?php
 	$odd = true;
 	foreach($list as $item) {
@@ -108,12 +183,9 @@
 													<table>
 														<tr>
 															<td>
-																<p style="display:inline;">
-																	Add parent:
-																</p>
-																<select style="display:none;">
+																<p style="display:inline;" id="addparentfor<?php echo $item->id;?>">Add parent:</p>
+																<select style="display:none;" id="parentoptions<?php echo $item->id;?>" name="parent[<?php echo $item->id; ?>][value]">
 <?php
-			$relative = true;
 			foreach($not_relative as $adopt) {
 ?>
 																	<option value="<?php echo $adopt->id; ?>"><?php echo $adopt->category; ?></option>
@@ -121,7 +193,7 @@
 			}
 ?>
 																</select>
-																<input type="checkbox">
+																<input type="checkbox" id="addparentbox<?php echo $item->id;?>" onchange="createRelation('parent', <?php echo $item->id;?>)" name="parent[<?php echo $item->id; ?>][change]">
 															</td>
 															<td>
 																&nbsp;
@@ -143,7 +215,7 @@ echo $item->id; ?>" type="checkbox" onchange="removeRelation(<?php
 echo $parent->id; ?>, <?php
 echo $item->id; ?>, this.checked);" id="id<?php
 echo $item->id; ?>parent<?php
-echo $parent->id; ?>">
+echo $parent->id; ?>" name="remove[<?php echo $item->id;?>]" value="<?php echo $parent->id;?>">
 													</label>
 												</div>
 <?php
@@ -160,12 +232,9 @@ echo $parent->id; ?>">
 													<table>
 														<tr>
 															<td>
-																<p style="display:inline;">
-																	Add child:
-																</p>
-																<select style="display:none;">
+																<p style="display:inline;" id="addchildfor<?php echo $item->id;?>">Add child:</p>
+																<select style="display:none;" id="childoptions<?php echo $item->id;?>" name="child[<?php echo $item->id; ?>][value]">
 <?php
-			$relative = true;
 			foreach($not_relative as $adopt) {
 ?>
 																	<option value="<?php echo $adopt->id; ?>"><?php echo $adopt->category; ?></option>
@@ -173,7 +242,7 @@ echo $parent->id; ?>">
 			}
 ?>
 																</select>
-																<input type="checkbox">
+																<input type="checkbox" id="addchildbox<?php echo $item->id;?>" onchange="createRelation('child', <?php echo $item->id;?>)" name="child[<?php echo $item->id; ?>][change]">
 															</td>
 															<td>
 																&nbsp;

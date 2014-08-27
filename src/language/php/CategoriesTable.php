@@ -1,4 +1,5 @@
 <?php
+	require_once 'MysqlTable.php';
 	require_once 'Category.php';
 	
 	/**
@@ -9,25 +10,7 @@
 	 * Targeted Mysql database should have a table named `category` and ``
 	 * @see "../sql/language_server.sql" for information on how to build table
 	**/
-	class CategoriesTable {
-		private $ip_;
-		private $user_;
-		private $pass_;
-		private $db_;
-		
-		/**
-		 * Constructor: takes the connection info
-		 * @param $ip - IP address the table is located on
-		 * @param $user - The username of the account
-		 * @param $pass - The password of the account
-		 * @param $db - The database with the table
-		**/
-		public function __construct($ip, $user, $pass, $db) {
-			$this->ip_ = $ip;
-			$this->user_ = $user;
-			$this->pass_ = $pass;
-			$this->db_ = $db;
-		}
+	class CategoriesTable extends MysqlTable  {
 		
 		/**
 		 * Gets all of the categories from the table
@@ -93,21 +76,32 @@
 			}
 		}
 	
-		public function get_by_word(Word $word) {
+		public function get_by_word(Word $word, $get_parents = false) {
 			$categories = array();
 			try {
 				$connect = new PDO('mysql:host=' . $this->ip_ . '; dbname=' . $this->db_ . '; charset=utf8', $this->user_, $this->pass_);
 				$connect->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 				$connect->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
 		
-				$command = 'SELECT * FROM is_in WHERE word_id = ?;';
+				$command = 'SELECT * FROM is_in WHERE word_id = :id;';
 		
 				$stmt = $connect->prepare($command);
 				$stmt->bindValue(':id', (int)$word->id, PDO::PARAM_INT);
 				$stmt->execute();
 				
+				$results = $stmt->fetchAll();
 				foreach($results as $row){
-					$categories[] = new Category($row);
+					$categories[] = $this->get_by_id($row['category_id']);
+				}
+				if($get_parents) {
+					foreach($categories as $category) {
+						$parents = $this->get_all_parents($category);
+						foreach($parents as $parent) {
+							if(!$parent->in_array($categories)) {
+								$categories[] = $parent;
+							}
+						}
+					}
 				}
 			} catch(PDOException $ex) {
 				log_info($ex->getMessage());

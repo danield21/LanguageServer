@@ -4,10 +4,10 @@
 		public $key;
 		public $min_admin;
 		
-		public function __construct($xml_object = null) {
-			$this->name = (isset($xml_object->title)) ? (string)$xml_object->title : '';
-			$this->key = (isset($xml_object['key'])) ? (string)$xml_object['key'] : '';
-			$this->min_admin = (isset($xml_object['min'])) ? (int)$xml_object['min'] : 0;
+		public function __construct($array = null) {
+			$this->name = (isset($array['name'])) ? (string)$array['name'] : '';
+			$this->key = (isset($array['key'])) ? (string)$array['key'] : '';
+			$this->min_admin = (isset($array['min'])) ? (int)$array['min'] : 0;
 		}
 		
 		public function get_link($relativepath = '.') {
@@ -16,6 +16,14 @@
 		
 		public function filename() {
 			return $this->key . '.php';
+		}
+		
+		public function is_valid() {
+			return $this->key !== '' && $this->name !== '';
+		}
+		
+		public function toArray() {
+			return ['name' => $this->name, 'key' => $this->key, 'min'=> $this->min_admin];
 		}
 	}
 ?>

@@ -14,8 +14,8 @@
 		/**
 		 * Constructor: Takes an array and set the member vars to the following values
 		 * @param $array - Array should contain the keys for 'category_id', 'category', or description.
-		 *		If keys are not present, then id will be 0 and category and description will be 0.
-		 *		All other values will be ignored.
+		 *		If keys are not present, then id will be 0 and category and description will be ''.
+		 *		All other values within the array will be ignored.
 		 **/
 		public function __construct($array = null) {
 			$this->id = (isset($array['category_id'])) ? (int)$array['category_id'] : 0;
@@ -56,12 +56,24 @@
 		}
 		
 		/**
-		 * Checks to see if the instance is filled
-		 * @return true if neither id or category are their default values
+		 * Checks to see if the instance is not empty
+		 * @return true if either id or category are not their default values
 		 **/	
 		public function is_valid() {
 			return ($this->id !== 0)
-				&& (trim($this->category) !== '');
+				|| (trim($this->category) !== '');
+		}
+		
+		/**
+		 * Returns all of the members as an array
+		 * @return array that is a copy of this
+		**/
+		public function toArray() {
+			return [
+				'category_id' => $this->id,
+				'category' => $this->category,
+				'description' => $this->description,
+			];
 		}
 	}
 ?>

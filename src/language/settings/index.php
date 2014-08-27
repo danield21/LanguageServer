@@ -4,14 +4,21 @@
 <?php
 	session_start();
 	require_once '../php/all.php';
-	$admin = status();
+	$header = 0;
+	
+	$at = new AccountsTable(IP, USER, PASSWORD, DATABASE);
+	$current_user = new Account;
+	if(isset($_SESSION['language_server_user']) && isset($_SESSION['language_server_key'])) {
+		$current_user = $at->get_by_id($_SESSION['language_server_user'], $_SESSION['language_server_key']);
+	}
+	
 	$st = new SettingsTable('settings.xml');
-	$settings = $st->get_min($admin);
+	$settings = $st->get_min($current_user->admin);
 ?>
 		<meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
 		<link rel="stylesheet" type="text/css" href="./style.php">
 		<title><?php
-	echo ($admin) ? "Administrator" : "Access Denied";
+	echo ($current_user->is_valid()) ? "Settings" : "Access Denied";
 ?></title>
 	</head>
 	<body>
@@ -29,9 +36,9 @@
 					<section class="right_menu">
 						<div>
 <?php
-if(isset($_SESSION['language_server_user'])) {
+if($current_user->is_valid()) {
 ?>
-							<p><?php echo $_SESSION['language_server_user'];?></p>
+							<p><?php echo $current_user->user;?></p>
 							<section>
 								<a href="./">Settings</a>
 <?php
@@ -88,9 +95,9 @@ if(isset($_SESSION['language_server_user'])) {
 				</nav>
 			</header>
 			<section id="body_content">
-				<div></div>
+				<div id="head_space"></div>
 <?php
-if($admin) {
+if($current_user->is_valid()) {
 	if(!isset($_GET['setting'])) {
 ?>
 				<table class="option">
@@ -105,23 +112,30 @@ if($admin) {
 <?php
 		}
 	} else {
+		$found = false;
 		foreach($settings as $setting) {
 			if($setting->key === $_GET['setting']) {
 				if(!file_exists($setting->filename()) || !include $setting->filename()) {
 					echo 'Not Found. Please try again.';
 					log_info('File ' . $setting->filename() . ' is not found');
 				}
+				$found = true;
 				break;
 			}
+		}
+		if(!$found) {
+?>
+				<p class="bad">Access Denied</p>
+<?php
 		}
 	}
 } else {
 ?>
-				<p class="bad">Access Denied</p>
+				<p class="bad">Please Login</p>
 <?php
 }
 ?>
-		</section>
-	</div>
-</body>
+			</section>
+		</div>
+	</body>
 </html>

@@ -23,5 +23,9 @@
 			return ($this->id !== 0)
 				|| (trim($this->language) !== '');
 		}
+		
+		public function toArray() {
+			return ['language_id' => $this->id, 'language' => $this->language];
+		}
 	}
 ?>

@@ -48,5 +48,16 @@
 		public function picture_file() {
 			return $this->id . '.' .  $this->picture;
 		}
+		
+		public function toArray() {
+			return [
+				'word_id' => $this->id,
+				'word' => $this->word,
+				'primary_sound' => $this->primary_sound,
+				'secondary_sound' => $this->secondary_sound,
+				'picture_type' => $this->picture,
+				'language_id' => $this->language_id,
+			];
+		}
 	}
 ?>

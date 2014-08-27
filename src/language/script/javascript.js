@@ -7,9 +7,8 @@ function playSound(primary, secondary) {
 	'</audio>';
 }
 
-function checkWord(id, word) {
+function checkWord(id, word, correctList) {
 	var answer = new Object();
-	var correctList = getListWords();
 	for(var i = 0; i < correctList.length; ++i) {
 		if((correctList[i].id == id) && (word !== "")) {
 			answer.correct = correctList[i];

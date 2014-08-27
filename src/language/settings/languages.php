@@ -1,17 +1,19 @@
 <?php
 	$table = new LanguagesTable(IP, USER, PASSWORD, DATABASE);
 	
-	if($admin) {
+	if($setting->min_admin <= $current_user->admin) {
 		if(isset($_POST["add"]["change"])) {
 			$table->add(new Language($_POST["add"]));
 		}
-		foreach($_POST["item"] as $item) {
-			if(isset($item["change"])) {
-				if($item["change"] === "edit") {
-					$table->edit(new Language($item));
-				}
-				if($item["change"] === "delete") {
-					$table->delete(new Language($item));
+		if(isset($_POST["item"])) {
+			foreach($_POST["item"] as $item) {
+				if(isset($item["change"])) {
+					if($item["change"] === "edit") {
+						$table->edit(new Language($item));
+					}
+					if($item["change"] === "delete") {
+						$table->delete(new Language($item));
+					}
 				}
 			}
 		}
@@ -62,7 +64,7 @@
 						}
 					}
 				</script>
-				<form id="language" method="post" action="./?setting=<?php echo $option->key; ?>">
+				<form id="language" method="post" action="./?setting=<?php echo $setting->key; ?>">
 					<input type="submit" value="Save Changes">
 					<table>
 						<tr class="lowlight">
@@ -73,18 +75,18 @@
 						</tr>
 						<tr class="lowlight">
 							<td>
-								<div id="ai<?php echo $item->id; ?>" style="display:initial">
+								<div id="ai" style="display:initial">
 									N/A
 								</div>
-								<div id="ni<?php echo $item->id; ?>" style="display:none">
+								<div id="ni" style="display:none">
 									<?echo count($list) + 1; ?>
 								</div>
 							</td>
 							<td>
-								<div id="al<?php echo $item->id; ?>" style="display:initial">
+								<div id="al" style="display:initial">
 									N/A
 								</div>
-								<div id="nl<?php echo $item->id; ?>" style="display:none">
+								<div id="nl" style="display:none">
 									<input type="text" name="add[language]" width="100%" value="Enter Language">
 								</div>
 							</td>

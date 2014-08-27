@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<colors>
+	<color id="background">
+		<version type="desktop">
+			<red value="119"/>
+			<green value="119"/>
+			<blue value="119"/>
+		</version>
+		<version type="mobile">
+			<red value="136"/>
+			<green value="136"/>
+			<blue value="136"/>
+		</version>
+	</color>
+	<color id="main">
+		<version type="desktop">
+			<red value="18"/>
+			<green value="55"/>
+			<blue value="137"/>
+		</version>
+		<version type="mobile">
+			<red value="193"/>
+			<green value="240"/>
+			<blue value="0"/>
+		</version>
+	</color>
+	<color id="navigation">
+		<version type="desktop">
+			<red value="60"/>
+			<green value="170"/>
+			<blue value="7"/>
+		</version>
+		<version type="mobile">
+			<red value="100"/>
+			<green value="160"/>
+			<blue value="170"/>
+		</version>
+	</color>
+	<color id="font">
+		<version type="desktop">
+			<red value="255"/>
+			<green value="255"/>
+			<blue value="255"/>
+		</version>
+		<version type="mobile">
+			<red value="0"/>
+			<green value="0"/>
+			<blue value="0"/>
+		</version>
+	</color>
+</colors>

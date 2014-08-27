@@ -1,7 +1,6 @@
 <?php
 	header("Content-type: text/css; charset: UTF-8");
 	require_once '../php/Color.php';
-	$white = new Color(255, 255, 255);
 	$background = new Color(119, 119, 119);
 	$main = new Color(18, 55, 137);
 	$nav = new Color(60, 170, 7);
@@ -161,8 +160,19 @@ section#body_content {
 	height: 100%;
 	overflow:auto;
 }
-section#body_content > div {
-	height:100pt;
+section#body_content > div#head_space {
+	height: 100pt;
+}
+table.option {
+	margin: 0 auto;
+}
+#orphan {
+	width: 80%;
+	margin: 0 auto;
+}
+.warning {
+	background: red;
+	border-radius: 25pt;
 }
 form#language > table {
 	width:500pt;
@@ -218,15 +228,14 @@ form#category .boxes {
 	vertical-align: top;
 	width:100pt;
 }
-#filter_options {
-	width:100%;
-}
-#filter_options table {
-	max-width:100%;
-	overflow:auto;
-}
-#filter_options input {
-	width:auto;
+table#search {
+	width: 80%;
+	margin: 0 auto;
+	border: <?php echo $nav; ?> 5pt solid;
+	border-radius: 25pt;
+    border-collapse: initial;
+	padding: 5pt;
+	background: <?php echo $main->lighter(32); ?>;
 }
 section#column1 {
 	width:50%;

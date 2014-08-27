@@ -1,20 +1,10 @@
 <?php
-require_once 'Word.php';
-require_once 'Language.php';
-require_once 'Category.php';
+	require_once 'MysqlTable.php';
+	require_once 'Word.php';
+	require_once 'Language.php';
+	require_once 'CategoriesTable.php';
 
-	class WordsTable {
-		private $ip_;
-		private $user_;
-		private $pass_;
-		private $db_;
-	
-		public function __construct($ip, $user, $pass, $db) {
-			$this->ip_ = $ip;
-			$this->user_ = $user;
-			$this->pass_ = $pass;
-			$this->db_ = $db;
-		}
+	class WordsTable extends MysqlTable {
 		
 		public function get_all() {
 			try {
@@ -51,7 +41,7 @@ require_once 'Category.php';
 				$connect->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 				$connect->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
 	
-				$command = 'SELECT * FROM word WHERE word_id = ? LIMIT 0, 1;';
+				$command = 'SELECT * FROM word WHERE word_id = :id LIMIT 0, 1;';
 	
 				$stmt = $connect->prepare($command);
 				$stmt->bindValue(':id', (int)$id, PDO::PARAM_INT);
@@ -80,8 +70,10 @@ require_once 'Category.php';
 		public function get_by_filter(Category $category, Language $language) {
 			$ct = new CategoriesTable($this->ip_, $this->user_, $this->pass_, $this->db_);
 			
+			$was_given = $category->is_valid();
+			
 			//Cleans and validates the given category
-			$category = $ct->get_by_id($category->id);
+			$category->id = (int)$category->id;
 			
 			$words = array();
 			$command = 'SELECT ' .
@@ -130,6 +122,57 @@ require_once 'Category.php';
 				return $words;
 			} catch(PDOException $ex) {
 				log_info($ex->getMessage() . "\n" . $command);
+				return array();
+			}
+		}
+		
+		public function get_no_category() {
+			try {
+				$connect = new PDO('mysql:host=' . $this->ip_ . '; dbname=' . $this->db_ . '; charset=utf8', $this->user_, $this->pass_);
+				$connect->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+				$connect->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+				
+				$command = 'SELECT * FROM word WHERE word_id NOT IN (SELECT word_id FROM is_in)';
+				
+				$stmt = $connect->prepare($command);
+				$stmt->execute();
+				$results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+				
+				$words = array();
+				
+				foreach($results as $row){
+					$words[] = new Word($row);
+				}
+				
+				return $words;
+			} catch(PDOException $ex) {
+				log_info($ex->getMessage());
+				return array();
+			}
+		}
+		
+		public function get_no_category_but_language(Language $language) {
+			try {
+				$connect = new PDO('mysql:host=' . $this->ip_ . '; dbname=' . $this->db_ . '; charset=utf8', $this->user_, $this->pass_);
+				$connect->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+				$connect->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+				
+				$command = 'SELECT * FROM word WHERE word_id NOT IN (SELECT word_id FROM is_in) AND language_id = :langID';
+				
+				$stmt = $connect->prepare($command);
+				$stmt->bindValue(':langID', (int)$language->id, PDO::PARAM_INT);
+				$stmt->execute();
+				$results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+				
+				$words = array();
+				
+				foreach($results as $row){
+					$words[] = new Word($row);
+				}
+				
+				return $words;
+			} catch(PDOException $ex) {
+				log_info($ex->getMessage());
 				return array();
 			}
 		}

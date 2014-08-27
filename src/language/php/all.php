@@ -2,9 +2,10 @@
 //Config
 require_once 'config.php';
 //Functions
+require_once 'AccountsTable.php';
 require_once 'SettingsTable.php';
 require_once 'CategoriesTable.php';
 require_once 'LanguagesTable.php';
 require_once 'WordsTable.php';
-require_once 'account_info.php'
+require_once 'account_info.php';
 ?>
